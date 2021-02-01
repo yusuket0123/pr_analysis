@@ -9,7 +9,7 @@ brew install chromedriver
 
 import requests
 import os
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup as bs4
 from selenium import webdriver
 import time
 
@@ -58,8 +58,18 @@ while True:
 
 ### サイトの記事URLを取得
 tags = driver.find_elements_by_css_selector(".renewal-p-cardItem__title > a")
-list_url = list()
+urls = list()
 for tag in tags:
     url = tag.get_attribute("href")
-    list_url = list_url.append(url) # 記事のurl取得
-    print("url: {}".format(url))
+    urls.append(url) # 記事のurl取得
+    print(url)
+print(urls)
+
+### 各urlにアクセス
+# 要素取得関数
+for url in urls:
+    soap = requests.get(url)
+    site = bs4(soap.text, "html.parser") # 第二引数はparser(解析方法)を指定
+    # 要素を取得
+    print(site.title)
+    # 辞書型で格納
