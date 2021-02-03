@@ -14,17 +14,6 @@ from selenium import webdriver
 import time
 import re
 
-"""
-ページにいく
-「ページでもっとみる」クリック
-最下部へのスクロールを記事が尽きるまでループ
-各記事にアクセス
-必要な要素を取ってくる
-理想: リファクタリングで関数化
-"""
-
-
-
 ### サイトにアクセス
 url = "https://note.com/k_three"
 driver = webdriver.Chrome()
@@ -36,7 +25,7 @@ button = driver.find_element_by_css_selector(".o-timelineHome__more > button")
 button.click()
 time.sleep(3)
 
-### スクロール（note特有）
+### サイト内スクロール（note特有）
 new_height = driver.execute_script("return document.body.scrollHeight") # ページ長さ取得
 i = 0
 while True:
@@ -49,11 +38,13 @@ while True:
     # Calculate new scroll height and compare with last scroll height
     new_height = driver.execute_script("return document.body.scrollHeight")
     print("new_height: {}".format(new_height))
+
     if new_height == old_height:
         i += 1
         print("i: {}".format(i))
     else:
          i = 0
+
     if i == 3: # ネット環境により3秒以内にサイトをリロードできない可能性があるため３回の猶予を持たせる
         break # これ以上スクロールで新たにロードされる情報がなくなったら処理を停止
 
@@ -77,23 +68,12 @@ for url in urls:
     print(title)
     dict_elems = {
         "content": site.find_all("p", attrs = {"name": re.compile(".....")}), \
-        "hashtags": site.find_all(attrs={"class": "a-tag__label"}), \
+        "keywords": site.find_all(attrs={"class": "a-tag__label"}), \
         "images": site.select(".lazyload"), \
         "likes": site.select(".o-noteContentText__likeCount"), \
         "time": site.select(".o-noteContentHeader__date") \
     }
     # 記事ごとに要素を格納
     dict_pages[title] = dict_elems
+    time.sleep(2)
     print("------- \n------- \n done \n------- \n-------")
-
-"""
-soap = requests.get(urls[1])
-site = bs4(soap.text, "html.parser")
-print(site.find_all("p", attrs = {"name": re.compile(".....")})) # regexでattributesを検索
-print(site.find_all(attrs={"class": "a-tag__label"}))
-#print(site.select(".o-noteContentText__body > p")) # 本文（文字数、筆者）
-#print(site.select(".a-tag__label")) # ハッシュタグ（数、ハッシュダグの言葉）
-print(site.select(".lazyload")) # 画像
-print(site.select(".o-noteContentText__likeCount")) # like
-print(site.select(".o-noteContentHeader__date")) # 投稿時間
-"""
