@@ -12,6 +12,7 @@ import os
 from bs4 import BeautifulSoup as bs4
 from selenium import webdriver
 import time
+import re
 
 """
 ページにいく
@@ -44,7 +45,7 @@ while True:
     # Scroll down to bottom
     driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") # ページ最下までスクロール
     # Wait to load page
-    time.sleep(3)
+    time.sleep(3) # ロードのための3秒間の猶予
     # Calculate new scroll height and compare with last scroll height
     new_height = driver.execute_script("return document.body.scrollHeight")
     print("new_height: {}".format(new_height))
@@ -53,7 +54,7 @@ while True:
         print("i: {}".format(i))
     else:
          i = 0
-    if i == 3: # ネット環境で3秒以内にサイトをリロードできない可能性があるため３回の猶予を持たせる
+    if i == 3: # ネット環境により3秒以内にサイトをリロードできない可能性があるため３回の猶予を持たせる
         break # これ以上スクロールで新たにロードされる情報がなくなったら処理を停止
 
 ### サイトの記事URLを取得
@@ -66,10 +67,33 @@ for tag in tags:
 print(urls)
 
 ### 各urlにアクセス
-# 要素取得関数
+# 要素取得
+dict_pages = dict()
 for url in urls:
     soap = requests.get(url)
     site = bs4(soap.text, "html.parser") # 第二引数はparser(解析方法)を指定
-    # 要素を取得
-    print(site.title)
-    # 辞書型で格納
+    # 要素を取得し、辞書型で格納（本文,#,画像,いいね数,投稿時間の順番）
+    title = site.title.text
+    print(title)
+    dict_elems = {
+        "content": site.find_all("p", attrs = {"name": re.compile(".....")}), \
+        "hashtags": site.find_all(attrs={"class": "a-tag__label"}), \
+        "images": site.select(".lazyload"), \
+        "likes": site.select(".o-noteContentText__likeCount"), \
+        "time": site.select(".o-noteContentHeader__date") \
+    }
+    # 記事ごとに要素を格納
+    dict_pages[title] = dict_elems
+    print("------- \n------- \n done \n------- \n-------")
+
+"""
+soap = requests.get(urls[1])
+site = bs4(soap.text, "html.parser")
+print(site.find_all("p", attrs = {"name": re.compile(".....")})) # regexでattributesを検索
+print(site.find_all(attrs={"class": "a-tag__label"}))
+#print(site.select(".o-noteContentText__body > p")) # 本文（文字数、筆者）
+#print(site.select(".a-tag__label")) # ハッシュタグ（数、ハッシュダグの言葉）
+print(site.select(".lazyload")) # 画像
+print(site.select(".o-noteContentText__likeCount")) # like
+print(site.select(".o-noteContentHeader__date")) # 投稿時間
+"""
