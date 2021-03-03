@@ -13,11 +13,10 @@ from bs4 import BeautifulSoup as bs4
 from selenium import webdriver
 import time
 import re
+from scrape_func import *
 
 ### サイトにアクセス
-url = "https://note.com/k_three"
-driver = webdriver.Chrome()
-driver.get(url)
+get_url(url = "https://note.com/k_three")
 time.sleep(5)
 
 ### もっとみる　クリック（note特有）
@@ -60,13 +59,15 @@ print(urls)
 ### 各urlにアクセス
 # 要素取得
 dict_pages = dict()
+num = 0
 for url in urls:
+    num += 1
     soap = requests.get(url)
     site = bs4(soap.text, "html.parser") # 第二引数はparser(解析方法)を指定
     # 要素を取得し、辞書型で格納（本文,#,画像,いいね数,投稿時間の順番）
-    title = site.title.text
     print(title)
     dict_elems = {
+        "title": site.title.text, \
         "content": site.find_all("p", attrs = {"name": re.compile(".....")}), \
         "keywords": site.find_all(attrs={"class": "a-tag__label"}), \
         "images": site.select(".lazyload"), \
@@ -74,6 +75,7 @@ for url in urls:
         "time": site.select(".o-noteContentHeader__date") \
     }
     # 記事ごとに要素を格納
-    dict_pages[title] = dict_elems
+    name = "article_note_" + str(num)
+    dict_pages[name] = dict_elems
     time.sleep(2)
     print("------- \n------- \n done \n------- \n-------")
